@@ -1097,6 +1097,7 @@ kube-proxy does not handle these Services, and there is no load balancing or pro
   - it ensure the Pod is re-attached to the same PVC as before
   - thus, Stateful set ensure STABLE storage for pods
 
+## Security Primitives
 
 ## HELM
 - package manager (install/uninstall/release manager) for kubernetes

@@ -1098,6 +1098,54 @@ kube-proxy does not handle these Services, and there is no load balancing or pro
   - thus, Stateful set ensure STABLE storage for pods
 
 ## Security Primitives
+### Basic concept
+2 types of security decision
+- who can access the cluster?
+  - files - username and passwords
+  - files - username and tokens
+  - certificates
+  - external authentication providers - like LDAP
+  - service accounts (for machines)
+
+- what can they do? 
+  - RBAC (role based access controls) Authorization
+  - ABAC (Attribute based access control)
+  - Node Authorization 
+  - Webhook mode
+
+### TLS certificates to secure communication between various components
+Communication between various components are secured by TLS encryption
+[TLS](./TLS-between-various-components.png)
+
+### Network policy to secure access between applications within cluster
+By default, all ports can access all other ports within the cluster
+
+### Authentication
+- Securing (external) access to the k8s cluster with authentication mechanisms
+- 2 types of users 1) Human User 2) Service accounts (bots)
+- k8s rely on external source like a file with user details or certificates or LDAP(https://en.wikipedia.org/wiki/Lightweight_Directory_Access_Protocol) to manage users
+
+#### Authentication mechanism
+##### Static file (easiest but insecure) 
+- Static password file
+[Basic auth file](./basic-auth-file.png)
+  - 3 cols: password, username, userid
+  - in the csv file, can add `group` column
+[Update Kubeadm with basic-auth-file](./update-kubeadm-tool.png)
+ - it will auto-restart
+
+[Curl access api](./curl-with-user-password.png)
+[Token auth file](./token-auth-file.png)
+  - for bearer token access
+
+  ** to access the file, must first mount the volume with the file
+  ** Authorization (RBAC - role and rolebinding) must be configured correctly first before the user can actually access the resource
+
+### Generating Certs for user (MISSING)
+TODO: will find out myself
+
+## Kubeconfig
+- store the server, client-key, client-certificate and certificate-authority <path>
 
 ## HELM
 - package manager (install/uninstall/release manager) for kubernetes

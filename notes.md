@@ -1339,6 +1339,7 @@ To install
 - what is kubeadm, how does it work?
 - the command/api request to `Kube Apiserver` actually would persist in etcd database
   - how does it look like? Can i access the etcd db?
+- project - install a full fledge cluster with grafana monitoring?
 
 # Answers
 - minikube is just a docker image

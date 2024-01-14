@@ -1263,6 +1263,32 @@ curl localhost:8001 -k, will show all the api paths at root
 [cluster role binding](./cluster-role-binding.png)
 
 
+## Admission controller
+- Admission controller is the next layer after RBAC which helps us implement better security measures to enforce
+how a cluster is used
+  - it could be used to validate the configuration (definition file)
+    - only allow certain image, certain user, or certain capabilities
+  - also, change the request itself, perform additional operations etc
+
+[Some built in admission controller](./default-admission-controllers.png)
+  - default uses `NamespaceLifeCycle`
+    - make sure that request to a non-existent namespace is rejected and that the default namespaces such as default kube system and kube public cannot be deleted.
+  - there's also another `Namespace Auto Provision` admission controller, that would create the namespace if it does not exist
+    - ❌ deprecated (but somehow still available)
+
+- to LIST the default enabled admission controllers (and full list)
+[View enabled admission controller](./view-enabled-admission-controllers.png)
+  - by doing `k exec` on the kube-apiserver pod
+`k exec kube-apiserver-minikube -n kube-system -- kube-apiserver -h | grep enable-admission-plugins`
+- to CHECK the actual enabled or disabled ones, need to check the process itself
+  - ps -ef | grep kube-apiserver | grep admission-plugins
+
+- another way is to check the `kube-apiserver` process or manifest file
+[List enabled admission controller](./list-enabled-admission-controller.png)
+- we could also enable plugins by updating `--enable-admission-plugin` in the manifest file
+  - or disable by `--disable-admission-plugins`
+  [Enable/disable admission plugins](./enable-disable-plugins-in-manifest.png)
+
 
 ## HELM
 - package manager (install/uninstall/release manager) for kubernetes
@@ -1311,6 +1337,8 @@ To install
 # Questions
 - How do kodekloud directly exposes the controlpane node such that we could checkout `/etc/kubernetes/manifest/...`
 - what is kubeadm, how does it work?
+- the command/api request to `Kube Apiserver` actually would persist in etcd database
+  - how does it look like? Can i access the etcd db?
 
 # Answers
 - minikube is just a docker image

@@ -272,6 +272,15 @@ to list all k8s objects
 kubectl api-resources
 ```
 
+## Kube config
+```
+kubectl config view
+
+kubectl config use-context <some new context>
+
+kubectl config -h
+```
+
 ## HELM commands
 ```
 -- search default artifact hub io 

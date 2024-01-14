@@ -1145,7 +1145,124 @@ By default, all ports can access all other ports within the cluster
 TODO: will find out myself
 
 ## Kubeconfig
-- store the server, client-key, client-certificate and certificate-authority <path>
+- [Manual way of authenticating](./manual-authentication.png)
+
+- can use store the server, client-key, client-certificate and certificate-authority's path
+- manually we can do
+`kubectl get pods --kubeconfig <config file>`
+  - by default under ~/.kube/config
+  [kubeconfig](./by-default-under-kube-slash-config.png)
+
+3 Sections:
+- Clusters - clusters defintion
+- Users - users definition
+- Contexts - define which user account to access which cluster
+[Example Kubeconfig](./example-kubeconfig.png)
+
+if we have multiple contexts in one file, we can use `current-context` to define the default context to use
+[Multiple contexts](./multiple-contexts.png)
+
+#### Kubectl config command
+[view](./kubectl-config-view.png)
+[use-context](./kubectl-change-use-context.png)
+
+#### Limit context to specific namespace
+[Limit-to-namespace](./limit-to-namespace.png)
+
+Can use encoded base64 data instead of filepath to certs
+[encoded](./encode-base-64-data.png)
+
+## API Groups
+All resources in K8s are grouped into different (cluster) API groups
+[Example Api groups](./api-groups.png)
+- Two _more_ important ones: 
+  1) /api, Core API group
+  2) /apis, Named API group
+
+[API doc](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/)
+
+[Core API group](./core-api-group.png)
+  - /api
+    - versioning
+
+[Named API group](./named-api-group.png)
+  - /apis
+    - API groups (more)
+      - versioning
+        - Resources
+          - verbs
+
+#### How to access K8s api server
+```
+kubectl proxy
+- launches a proxy service locally on port 8001 and uses credentials and certificates to access the cluster
+  - the admin.key, admin.crt and admin.ca
+then
+curl localhost:8001 -k, will show all the api paths at root
+[kubectl proxy](./kubectl-proxy.png)
+```
+
+**Note:
+#### Kube proxy vs Kubectl proxy
+`Kube proxy` enable connectivity between pods and services across different nodes in the cluster
+`Kubectl proxy` is an HTTP proxy service created by Kubectl utility to access Kube API server
+
+
+## Authorization
+- provide user or external applications the min level of access to perform its required operations
+- when we share clusters (between different org or teams), we want to restrict access to users to their name spaces
+- Different authorizations (modes):
+  - Node authorization
+    - Who is authorizing? Node authorizer
+    - Who is it authorizing? User (Kubelet) named system node with group system nodes
+      - Kubelet is _per_ node
+      - [Node authorizer](./node-authorizer.png)
+  - ABAC (Attribute Based Authorization)
+    - Associate a user or a group of users with a set of permissions
+    - Do this via a _policy file_
+    - [ABAC](./ABAC.png)
+    - difficult to manage, every change to the policy file requires a restart of Kube API server
+  - RBAC (Role Based Access Control - recommended)
+    - Define role and then associate users to roles
+    - Users can come and go, roles stay the same
+    - [RBAC](./RBAC.png)
+  - Webhook (Authorization managed by External Third party)
+    [Webhook authorization](./Webhook-authorization.png)
+
+  #### Authorization mode
+  [Authorization modes](./authorization-modes.png)
+  - basically authorizations list above, includes AlwaysAllow (default), AlwaysDeny
+  [How Authorization Mode works](./how-authorization-mode.png)
+  - can provide multiple modes, OR operation
+  - if first mode rejects, goes to next one. If approve, returns with approval
+
+## RBAC
+[Role and role-binding Definitions](./role-and-role-binding-defintion.png)
+
+#### Check access
+- use `auth can-i` to check access (on own self)
+- use `--as <who>` to check for others
+- append `--namespace` to check for namespace
+[Check access](./check-access.png)
+- or simpler, no need `auth can-i`, just `node get pods --as <user name>`
+
+#### More specific restriction on resource name
+- add `resourceNames` to the rule
+[Resource restriction](./resource-restriction.png)
+
+
+## Clusterrole
+- intro, two broad categories of resources - namespaced & non-namespaced 
+[Namespaced vs non-namespaced](./namespaced-vs-non-namespaced.png)
+- Cluster scoped, non-namespaced (resource)
+- clusterrole is used to authorize users to cluster wide resources (like nodes & PV..)
+  - we can create a cluster role for namespaced resources as well
+    - that just means the user will have access to those resources across all namespaces
+    - k8s have a number of cluster roles by default
+[cluster role definition](./cluster-admin-role.yml)
+[cluster role binding](./cluster-role-binding.png)
+
+
 
 ## HELM
 - package manager (install/uninstall/release manager) for kubernetes
@@ -1189,3 +1306,16 @@ To install
 - each installation of a chart is called a release
 - each release has a release name
 - can install the same chart (same application) mulitple times with different release name
+
+
+# Questions
+- How do kodekloud directly exposes the controlpane node such that we could checkout `/etc/kubernetes/manifest/...`
+- what is kubeadm, how does it work?
+
+# Answers
+- minikube is just a docker image
+- `minikube start` will start the docker container
+  - use `docker ps` to check the container running
+  - can use `docker exec -it <container id> bash` to get inside this container
+- Then checkout `/etc/kubernetes/manifest/..` to see the manifest files for the kube system processes like apiserver, etcd..
+  - can see that the certs and configs are mounted against host paths `/var/lib/..`

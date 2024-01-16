@@ -1289,6 +1289,66 @@ how a cluster is used
   - or disable by `--disable-admission-plugins`
   [Enable/disable admission plugins](./enable-disable-plugins-in-manifest.png)
 
+## 2 types of admission controller
+#### Validating
+- Example, NamespaceExists, check if NamespaceExists, errors out if not
+
+#### Mutating
+- Example, DefaultStorageClass, creates `default` StorageClass for PVC if unspecified
+- Mutating Admission Controller runs _first_ before Validating Admission Controller
+
+- To support `external` (custom) admission controllers, 2 special admission controllers are available:
+  - MutatingA dmission Webhook
+  - Validating Admission Webhook
+
+To make use of`external` admission controller, we need to deploy a `Admission Webhook Server`
+which has serves the `POST /validate` and `POST /mutate` endpoints
+*** Example
+  Validating [Block user who has same name as the metadata.name](./admission-webhook-server-validate.png)
+  Mutating [Add label under users](./patch-add-a-user-label.png)
+
+2 steps to deploy a `Admission Webhook Server`
+1. Deploy the server, either externally or inside same K8s cluster
+2. Configure the Admission Webhook
+  - 2 kinds: (https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#mutatingadmissionwebhook)
+    - MutatingWebhookConfiguration
+    - ValidatingWebhookConfiguration
+      [Sample](./ValidatingWebhookConfiguration-defintion.png)
+
+## API group
+V1 - GA/Stable - Generally available stable version
+[alpha](./Api-group-v1apha1.png)
+  - not enabled by default
+  - under internal.apiserver.k8s.io
+[beta and GA](./beta-and-GA.png)
+
+[Multiple versions](./multiple-versions.png)
+Even though there maybe multiple API versions for the same object
+there's a preferred/storage version
+even if an object is created with earlier versions, it maybe converted into the storage version before (creation) &
+storing into etcd database
+#### Preferred / Storage version maybe different
+ - Preferred is the default version when retrieving info thru API
+ - Storage version is the version in which an object is stored in ETCD (irrespective of the actual version used in the manifest)
+ - [Query preferred version](./query-preferred-version-api-resource-endpoint.png) - via api resource endpoint
+ - [Query storage version](./query-storage-version.png) - via Etcd
+
+#### Enabling / disabling API groups
+[Enabling/Disabling](./enabling-disabling-API-groups.png)
+  - add under `runtime-config`, can add multiple
+
+  ## API Deprecations
+    ### API deprecation Policy Rule
+    https://kubernetes.io/docs/reference/using-api/deprecation-policy/#deprecating-parts-of-the-api
+    (refer to this link, its much clearer)
+  - rule 1, [remove API element](./api-element-removed-by-increasing-version.png)
+    - only by increasing the version
+    - but for Alpha, if its not supported, i think it can be dropped entirely
+  - rule 2, [round trip](./api-versioning-round-trip.png)
+
+  - Use `kubectl convert` command to convert the `apiVersion`
+    [kubectl convert](./kubectl-convert-command.png)
+      - merely replace the old file with new Api version and print to stdout
 
 ## HELM
 - package manager (install/uninstall/release manager) for kubernetes
